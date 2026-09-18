@@ -49,6 +49,7 @@ sealed class TrayApp : ApplicationContext
     readonly Icon appIcon;
     readonly ToolStripMenuItem status;
     readonly ToolStripMenuItem hdrToggle;
+    bool hdrTargetEnabled;
     readonly object hdrLock = new object();
     bool manualOverride;
     readonly Control dispatcher = new Control();
@@ -101,13 +102,12 @@ sealed class TrayApp : ApplicationContext
     {
         try
         {
-            lock (hdrLock) { hdrToggle.Checked = HdrControl.IsEnabled(); }
-            hdrToggle.Text = hdrToggle.Checked ? "HDR: 开启" : "HDR: 关闭";
+            lock (hdrLock) { hdrTargetEnabled = !HdrControl.IsEnabled(); }
+            hdrToggle.Text = hdrTargetEnabled ? "开启 HDR (当前已关闭) " : "关闭 HDR (当前已开启) ";
             hdrToggle.Enabled = true;
         }
         catch (Exception ex)
         {
-            hdrToggle.Checked = false;
             hdrToggle.Text = "HDR: 不可用";
             hdrToggle.Enabled = false;
             status.Text = ex.Message;
@@ -120,7 +120,7 @@ sealed class TrayApp : ApplicationContext
         {
             lock (hdrLock)
             {
-                HdrControl.SetEnabled(!HdrControl.IsEnabled());
+                HdrControl.SetEnabled(hdrTargetEnabled);
                 manualOverride = true;
             }
         }
