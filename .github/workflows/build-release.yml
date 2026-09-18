@@ -24,23 +24,11 @@ jobs:
         shell: cmd
         run: call Build.cmd --ci
 
-      - name: Package and checksum
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path dist -Force | Out-Null
-          Copy-Item RustDeskHDRhelper.exe dist/
-          Compress-Archive -Path RustDeskHDRhelper.exe -DestinationPath dist/rustdesk-hdr-helper-windows.zip -Force
-          Get-Item dist/RustDeskHDRhelper.exe, dist/rustdesk-hdr-helper-windows.zip | ForEach-Object {
-            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            "$hash  $($_.Name)"
-          } | Set-Content dist/SHA256SUMS.txt -Encoding ascii
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
         with:
           name: rustdesk-hdr-helper-windows
-          path: dist/*
+          path: RustDeskHDRhelper.exe
           if-no-files-found: error
           retention-days: 30
 
@@ -62,10 +50,6 @@ jobs:
           name: rustdesk-hdr-helper-windows
           path: dist
 
-      - name: Verify downloaded artifacts
-        working-directory: dist
-        run: sha256sum --check SHA256SUMS.txt
-
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -76,13 +60,13 @@ jobs:
           set -euo pipefail
           # Re-running a successful tag build updates its assets.
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" dist/* --clobber
+            gh release upload "$RELEASE_TAG" dist/RustDeskHDRhelper.exe --clobber
           else
             flags=()
             if [[ "$RELEASE_TAG" == *-* ]]; then
               flags+=(--prerelease)
             fi
-            gh release create "$RELEASE_TAG" dist/* \
+            gh release create "$RELEASE_TAG" dist/RustDeskHDRhelper.exe \
               --verify-tag --title "rustdesk-hdr-helper $RELEASE_TAG" \
               --generate-notes "${flags[@]}"
           fi
