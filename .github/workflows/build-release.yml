@@ -37,7 +37,7 @@ jobs:
           } | Set-Content dist/SHA256SUMS.txt -Encoding ascii
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rustdesk-hdr-helper-windows
           path: dist/*
@@ -57,7 +57,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: rustdesk-hdr-helper-windows
           path: dist
